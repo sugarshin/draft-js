@@ -3420,7 +3420,7 @@ var Draft =
 
 	// Block tag flow is different because LIs do not have
 	// a deterministic style ;_;
-	var blockTags = ['p', 'h1', 'h2', 'h3', 'li', 'blockquote', 'pre'];
+	var blockTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'pre', 'figure', 'div'];
 	var inlineTags = {
 	  b: 'BOLD',
 	  code: 'CODE',
@@ -3501,6 +3501,8 @@ var Draft =
 	      return 'blockquote';
 	    case 'pre':
 	      return 'code-block';
+	    case 'figure':
+	      return 'media';
 	    default:
 	      return 'unstyled';
 	  }
