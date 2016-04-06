@@ -140,7 +140,7 @@ function getBlockTypeForTag(tag: string, lastList: ?string): DraftBlockType {
     case 'pre':
       return 'code-block';
     case 'figure':
-      return 'media';
+      return 'atomic';
     default:
       return 'unstyled';
   }
