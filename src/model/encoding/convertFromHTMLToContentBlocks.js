@@ -58,6 +58,11 @@ var inlineTags = {
   strong: 'BOLD',
   u: 'UNDERLINE',
 };
+var MEDIA = {
+  img: 'IMAGE',
+  video: 'VIDEO',
+  audio: 'AUDIO'
+};
 
 var lastBlock;
 
@@ -263,6 +268,26 @@ function genFragment(
       entities: Array(text.length).fill(inEntity),
       blocks: [],
     };
+  }
+
+  if (Object.keys(MEDIA).some(k => k === nodeName)) {
+    var entityKey = DraftEntity.create(MEDIA[nodeName], 'IMMUTABLE', {
+      src: node.src,
+      alt: node.alt,
+      'data-original-url': node.parentNode.getAttribute('href')
+    });
+    return {
+      text: '\r \r',
+      inlines: Array(3).fill(inlineStyle),
+      entities: Array(3).fill(entityKey),
+      blocks: [{
+        type: 'atomic',
+        depth
+      }, {
+        type: 'unstyled',
+        depth
+      }]
+    }
   }
 
   // save the last block so we can use it later
