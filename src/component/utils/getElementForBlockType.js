@@ -29,6 +29,7 @@ function getElementForBlockType(blockType: DraftBlockType): string {
     case 'header-six':
       return 'h6';
     case 'unordered-list-item':
+    case 'checkable-list-item':
     case 'ordered-list-item':
       return 'li';
     case 'blockquote':
