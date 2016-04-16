@@ -3452,6 +3452,27 @@ var Draft =
 	  video: 'VIDEO',
 	  audio: 'AUDIO'
 	};
+	var COLOR_STYLE_MAP = {
+	  TEXT_DEFAULT: { color: '#878787' },
+	  TEXT_WHITE: { color: '#fff' },
+	  TEXT_BLACK: { color: '#000' },
+	  TEXT_RED: { color: 'rgb(255, 0, 0)' },
+	  TEXT_ORANGE: { color: 'rgb(255, 127, 0)' },
+	  TEXT_YELLOW: { color: 'rgb(180, 180, 0)' },
+	  TEXT_GREEN: { color: 'rgb(0, 180, 0)' },
+	  TEXT_BLUE: { color: 'rgb(0, 0, 255)' },
+	  TEXT_INDIGO: { color: 'rgb(75, 0, 130)' },
+	  TEXT_VIOLET: { color: 'rgb(127, 0, 255)' },
+	  BACKGROUND_DEFAULT: { backgroundColor: '#fff' },
+	  BACKGROUND_BLACK: { backgroundColor: '#000' },
+	  BACKGROUND_RED: { backgroundColor: 'rgb(255, 0, 0)' },
+	  BACKGROUND_ORANGE: { backgroundColor: 'rgb(255, 127, 0)' },
+	  BACKGROUND_YELLOW: { backgroundColor: 'rgb(180, 180, 0)' },
+	  BACKGROUND_GREEN: { backgroundColor: 'rgb(0, 180, 0)' },
+	  BACKGROUND_BLUE: { backgroundColor: 'rgb(0, 0, 255)' },
+	  BACKGROUND_INDIGO: { backgroundColor: 'rgb(75, 0, 130)' },
+	  BACKGROUND_VIOLET: { backgroundColor: 'rgb(127, 0, 255)' }
+	};
 
 	var lastBlock;
 
@@ -3562,6 +3583,16 @@ var Draft =
 
 	        if (htmlElement.style.textDecoration === 'line-through') {
 	          style.add('STRIKETHROUGH');
+	        }
+
+	        var colorStyles = Object.keys(COLOR_STYLE_MAP).filter(function (label) {
+	          var style = COLOR_STYLE_MAP[label];
+	          return htmlElement.style.color === style.color || htmlElement.style.backgroundColor === style.backgroundColor;
+	        });
+	        if (colorStyles.length > 0) {
+	          colorStyles.forEach(function (label) {
+	            return style.add(label);
+	          });
 	        }
 	      }).toOrderedSet();
 	    })();
