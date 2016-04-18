@@ -3098,6 +3098,7 @@ var Draft =
 	    value: function componentDidMount() {
 	      var selection = this.props.selection;
 	      var endKey = selection.getEndKey();
+	      var blockType = this.props.block.getType();
 	      if (!selection.getHasFocus() || endKey !== this.props.block.getKey()) {
 	        return;
 	      }
@@ -3116,6 +3117,9 @@ var Draft =
 	          window.scrollTo(scrollPosition.x, scrollPosition.y + scrollDelta + SCROLL_BUFFER);
 	        }
 	      } else {
+	        if (blockType === 'unordered-list-item' || blockType === 'ordered-list-item') {
+	          blockNode = blockNode.parentNode;
+	        }
 	        var blockBottom = blockNode.offsetHeight + blockNode.offsetTop;
 	        var scrollBottom = scrollParent.offsetHeight + scrollPosition.y;
 	        scrollDelta = blockBottom - scrollBottom;
