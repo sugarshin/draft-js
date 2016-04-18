@@ -46,7 +46,7 @@ var REGEX_NBSP = new RegExp(NBSP, 'g');
 
 // Block tag flow is different because LIs do not have
 // a deterministic style ;_;
-var blockTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'li', 'blockquote', 'pre'];
+var blockTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'li', 'blockquote', 'pre', 'div'];
 var inlineTags = {
   b: 'BOLD',
   code: 'CODE',
@@ -63,26 +63,32 @@ var MEDIA = {
   video: 'VIDEO',
   audio: 'AUDIO'
 };
-var COLOR_STYLE_MAP = {
-  TEXT_DEFAULT: { color: '#878787' },
-  TEXT_WHITE: { color: '#fff' },
-  TEXT_BLACK: { color: '#000' },
-  TEXT_RED: { color: 'rgb(255, 0, 0)' },
-  TEXT_ORANGE: { color: 'rgb(255, 127, 0)' },
-  TEXT_YELLOW: { color: 'rgb(180, 180, 0)' },
-  TEXT_GREEN: { color: 'rgb(0, 180, 0)' },
-  TEXT_BLUE: { color: 'rgb(0, 0, 255)' },
-  TEXT_INDIGO: { color: 'rgb(75, 0, 130)' },
-  TEXT_VIOLET: { color: 'rgb(127, 0, 255)' },
-  BACKGROUND_DEFAULT: { backgroundColor: '#fff' },
-  BACKGROUND_BLACK: { backgroundColor: '#000' },
-  BACKGROUND_RED: { backgroundColor: 'rgb(255, 0, 0)' },
-  BACKGROUND_ORANGE: { backgroundColor: 'rgb(255, 127, 0)' },
-  BACKGROUND_YELLOW: { backgroundColor: 'rgb(180, 180, 0)' },
-  BACKGROUND_GREEN: { backgroundColor: 'rgb(0, 180, 0)' },
-  BACKGROUND_BLUE: { backgroundColor: 'rgb(0, 0, 255)' },
-  BACKGROUND_INDIGO: { backgroundColor: 'rgb(75, 0, 130)' },
-  BACKGROUND_VIOLET: { backgroundColor: 'rgb(127, 0, 255)' }
+var OLD_COLORS = [
+  'rgb(0, 0, 0)', 'rgb(230, 0, 0)', 'rgb(255, 153, 0)', 'rgb(255, 255, 0)',
+  'rgb(0, 138, 0)', 'rgb(0, 102, 204)', 'rgb(153, 51, 255)', 'rgb(255, 255, 255)',
+  'rgb(250, 204, 204)', 'rgb(255, 235, 204)', 'rgb(255, 255, 204)', 'rgb(204, 232, 204)',
+  'rgb(204, 224, 245)', 'rgb(235, 214, 255)', 'rgb(187, 187, 187)', 'rgb(240, 102, 102)',
+  'rgb(255, 194, 102)', 'rgb(255, 255, 102)', 'rgb(102, 185, 102)', 'rgb(102, 163, 224)',
+  'rgb(194, 133, 255)', 'rgb(136, 136, 136)', 'rgb(161, 0, 0)', 'rgb(178, 107, 0)',
+  'rgb(178, 178, 0)', 'rgb(0, 97, 0)', 'rgb(0, 71, 178)', 'rgb(107, 36, 178)',
+  'rgb(68, 68, 68)', 'rgb(92, 0, 0)', 'rgb(102, 61, 0)', 'rgb(102, 102, 0)',
+  'rgb(0, 55, 0)', 'rgb(0, 41, 102)', 'rgb(61, 20, 10)'
+];
+var OLD_INLINE_STYLES_SIZE = {
+  SIZE_NORMAL: { fontSize: 13 },
+  SIZE_SMALLER: { fontSize: 10 },
+  SIZE_LARGER: { fontSize: 24 },
+  SIZE_HUGE: { fontSize: 32 }
+};
+var OLD_INLINE_STYLES = OLD_COLORS.reduce((result, color, i) => {
+  result[`COLOR${i}`] = { color };
+  result[`BACKGROUND_COLOR${i}`] = { backgroundColor: color };
+  return result;
+}, OLD_INLINE_STYLES_SIZE);
+var OLD_BLOCK_TYPES = {
+  ALIGN_CENTER: 'align-center',
+  ALIGN_RIGHT: 'align-right',
+  ALIGN_JUSTIFY: 'align-justify'
 };
 
 var lastBlock;
@@ -178,9 +184,29 @@ function getBlockTypeForTag(tag: string, lastList: ?string, node: ?Node): DraftB
       return 'blockquote';
     case 'pre':
       return 'code-block';
+    case 'div':
+      if (node.style.textAlign === 'center') {
+        return OLD_BLOCK_TYPES.ALIGN_CENTER;
+      } else if (node.style.textAlign === 'right') {
+        return OLD_BLOCK_TYPES.ALIGN_RIGHT;
+      } else if (node.style.textAlign === 'justify') {
+        return OLD_BLOCK_TYPES.ALIGN_JUSTIFY;
+      } else {
+        return 'unstyled';
+      }
     default:
       return 'unstyled';
   }
+}
+
+function hasOldStyleFontSize(node: Node): boolean {
+  return Object.keys(OLD_INLINE_STYLES_SIZE).some(label => (
+    OLD_INLINE_STYLES_SIZE[label].fontSize === parseInt(node.style.fontSize, 10)
+  ));
+}
+
+function hasOldStyleColor(node: Node, prop: string): boolean {
+  return OLD_COLORS.some(color => color === node.style[prop]);
 }
 
 function processInlineTag(
@@ -210,13 +236,25 @@ function processInlineTag(
         style.add('STRIKETHROUGH');
       }
 
-      const colorStyles = Object.keys(COLOR_STYLE_MAP).filter(label => {
-        const style = COLOR_STYLE_MAP[label];
-        return htmlElement.style.color === style.color ||
-          htmlElement.style.backgroundColor === style.backgroundColor;
-      })
-      if (colorStyles.length > 0) {
-        colorStyles.forEach(label => style.add(label));
+      if (hasOldStyleColor(htmlElement, 'color')) {
+        const targetLabel = Object.keys(OLD_INLINE_STYLES).filter(label => (
+          OLD_INLINE_STYLES[label].color === htmlElement.style.color
+        ))[0];
+        style.add(targetLabel);
+      }
+
+      if (hasOldStyleColor(htmlElement, 'backgroundColor')) {
+        const targetLabel = Object.keys(OLD_INLINE_STYLES).filter(label => (
+          OLD_INLINE_STYLES[label].backgroundColor === htmlElement.style.backgroundColor
+        ))[0];
+        style.add(targetLabel);
+      }
+
+      if (hasOldStyleFontSize(htmlElement)) {
+        const targetLabel = Object.keys(OLD_INLINE_STYLES_SIZE).filter(label => (
+          OLD_INLINE_STYLES_SIZE[label].fontSize === parseInt(htmlElement.style.fontSize, 10)
+        ))[0];
+        style.add(targetLabel);
       }
     }).toOrderedSet();
   }
